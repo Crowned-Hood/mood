@@ -40,7 +40,13 @@ export class MarkdownFile {
 
   get isAlreadyCompiled(): boolean {
     if (this._lastCompile == null) return false;
-    return this._lastCompile.valueOf() < this._lastEdit.valueOf();
+
+    const list = this.fileList;
+    for (let dep of list) {
+      if (dep._lastCompile?.valueOf() < dep._lastEdit.valueOf()) return false;
+    }
+
+    return this._lastCompile.valueOf() >= this._lastEdit.valueOf();
   }
 
   constructor(file: string) {

@@ -38,14 +38,14 @@ export class Compiler {
       constraints: [
         `Do not generate any dialogue response at all. Generate vaild ${lang} code that can be run`,
         "Do only what the file description says. Do not import dependencies unless mentioned",
-        "Understand that dependencies are files. not necessarily classes",
+        "Must follow behavior of specified dependencies",
         "Assume you are working in an agile environment so you need to make this file accessible to others",
-        "If previousIteration is not null, keep in mind you are making changes using the new description.",
+        "If the previous iteration is not null, then consider using the file structure of that file.",
       ],
       filename: file.name,
       paradigm: file.paradigm,
       dependencies: deps,
-      previousIteration: file.compiledFile,
+      previous: file.compiledFile,
       fileDescription: file.script,
       task: `Take the file description and generate an iteration of ONLY ${lang} code for a large scale project.`,
       format: `\`\`\`
@@ -56,7 +56,7 @@ export class Compiler {
     };
 
     const promptString: string = encode(prompt);
-    console.log("Prompt", promptString);
+    // console.log("Prompt", promptString);
     const response = await this._llm.generate(promptString);
 
     return response.split("\n").slice(1, -1).join("\n");
@@ -92,7 +92,7 @@ export class Compiler {
       fs.mkdirSync(path.parse(file.targetPath).dir, { recursive: true });
       fs.writeFileSync(file.targetPath, output);
 
-      console.log(output);
+      // console.log(output);
     }
   }
 }
