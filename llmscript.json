@@ -1,0 +1,5 @@
+{
+  "targetLanguage": "TypeScript",
+  "targetFolder": "example/out",
+  "sourceFolder": "example/src/"
+}

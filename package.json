@@ -1,0 +1,18 @@
+{
+  "name": "llm-script",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@toon-format/toon": "^2.3.0",
+    "commander": "^15.0.0",
+    "gray-matter": "^4.0.3",
+    "ollama": "^0.6.3"
+  }
+}
