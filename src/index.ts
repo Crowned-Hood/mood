@@ -2,6 +2,8 @@ import { Command } from "commander";
 import { Compiler } from "./compiler/compiler";
 import { ConfigReader } from "./config_reader";
 
+// Program Initialization
+
 const program = new Command();
 
 program
@@ -11,11 +13,19 @@ program
   );
 
 program
-  .command("build")
-  .description("takes the main file and compiles the entire file graph")
-  .action((str, options) => {
-    const compiler: Compiler = new Compiler();
-    compiler.buildProcess(ConfigReader.instance.mainFile);
-  });
+  .option("-f, --force", "forces the cli action without any restraint")
+  .option(
+    "-m, --main <string>",
+    "the main file path from the source directory",
+  );
 
-program.parse();
+program.parse(process.argv);
+const options = program.opts();
+
+// Override configs where needed
+const config = ConfigReader.instance;
+if (options.force !== undefined) config.forceCompile = true;
+
+// Run Compilation Process
+const compiler: Compiler = new Compiler();
+compiler.buildProcess(config.mainFile);

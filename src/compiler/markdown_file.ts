@@ -14,21 +14,17 @@ export class MarkdownFile {
   paradigm: string;
   script: string;
   name: string;
-  compiledFile?: string;
-  targetPath?: string;
+  targetPath: string;
+  private _lastEdit: Date;
 
-  _lastEdit: Date;
-  _lastCompile?: Date;
+  compiledFile?: string;
+  private _lastCompile?: Date;
 
   /**
    * Returns true if the file has been compiled in the past
    */
   private findCompiledFile(): boolean {
     // First see if the file exists
-
-    this.targetPath =
-      path.join(path.join(process.cwd(), config.targetFolder), this.name) +
-      ".ts";
 
     if (!fs.existsSync(this.targetPath)) return false;
 
@@ -62,11 +58,14 @@ export class MarkdownFile {
     this.script = metadata.content;
 
     // Get file name relative to directory without extension
-    const filename = `./${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
+    const filename = `${path.parse(file).dir == "." ? "" : "./"}${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
     this.name = filename;
 
     this._lastEdit = fs.statSync(relativePath).mtime;
 
+    this.targetPath =
+      path.join(path.join(process.cwd(), config.targetFolder), this.name) +
+      ".ts";
     this.findCompiledFile();
   }
 

@@ -2,7 +2,7 @@ import { Ollama } from "ollama";
 import type { GenerateResponse } from "ollama/dist/browser.cjs";
 
 export abstract class LLMInterface {
-  async generate(input: string): Promise<string> {
+  async generate(input: Array<any>): Promise<string> {
     return "";
   }
 }
@@ -18,14 +18,13 @@ export class OllamaInterface implements LLMInterface {
     });
   }
 
-  async generate(input: string): Promise<string> {
-    const response: GenerateResponse = await this._llm.generate({
+  async generate(input: Array<any>): Promise<string> {
+    const response = await this._llm.chat({
       model: "qwen3-coder:480b-cloud",
       // model: "qwen2.5-coder:3b",
-      prompt: input,
-      think: false,
+      messages: input,
     });
 
-    return response.response;
+    return response.message.content;
   }
 }

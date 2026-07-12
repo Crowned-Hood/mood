@@ -7,12 +7,15 @@ export class ConfigReader {
   targetLanguage: string;
   targetFolder: string;
   sourceFolder: string;
+  mainFile: string;
+  forceCompile: boolean;
 
   constructor(config: any) {
     this.targetLanguage = config.targetLanguage || "JavaScript";
     this.targetFolder = config.targetFolder || "out";
     this.sourceFolder = config.sourceFolder || "src";
     this.mainFile = config.mainFile || "./main.md";
+    this.forceCompile = false;
   }
 
   static get instance(): any {
