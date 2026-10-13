@@ -6,109 +6,97 @@ import { ConfigReader } from "../config_reader";
 
 const config = ConfigReader.instance;
 
-/**
- * An organized datatype for a .md file in the compiler
- */
+export interface fileReference {
+    name: string;
+    type: "architecture" | "fileDescription";
+    data: string;
+}
+
 export class MarkdownFile {
-  dependencies?: string[];
-  paradigm: string;
-  script: string;
-  name: string;
-  targetPath: string;
-  private _lastEdit: Date;
+    references?: string[];
+    extension?: string;
+    script: string;
+    name: string;
+    targetPath: string;
+    private _lastEdit: Date;
 
-  compiledFile?: string;
-  private _lastCompile?: Date;
+    compiledFile?: string;
+    private _lastCompile?: Date;
 
-  /**
-   * Returns true if the file has been compiled in the past
-   */
-  private findCompiledFile(): boolean {
-    // First see if the file exists
+    /**
+     * Returns true if the file has been compiled in the past
+     */
+    private _findCompiledFile(): boolean {
+      // First see if the file exists
 
-    if (!fs.existsSync(this.targetPath)) return false;
+      if (!fs.existsSync(this.targetPath)) return false;
 
-    this._lastCompile = fs.statSync(this.targetPath).mtime;
-    this.compiledFile = fs.readFileSync(this.targetPath, "utf-8");
+      this._lastCompile = fs.statSync(this.targetPath).mtime;
+      this.compiledFile = fs.readFileSync(this.targetPath, "utf-8");
 
-    return true;
-  }
-
-  get isAlreadyCompiled(): boolean {
-    if (this._lastCompile == null) return false;
-
-    const list = this.fileList;
-    for (let dep of list) {
-      if (dep._lastCompile?.valueOf() < dep._lastEdit.valueOf()) return false;
+      return true;
     }
 
-    return this._lastCompile.valueOf() >= this._lastEdit.valueOf();
-  }
+    get isAlreadyCompiled(): boolean {
+        if (this._lastCompile == null) return false;
 
-  constructor(file: string) {
-    const relativePath = path.join(
-      path.join(process.cwd(), config.sourceFolder),
-      file,
-    );
+        const list = this.resolvedReferences;
+        for (let dep of list) {
+            // if (dep._lastCompile?.valueOf() < dep._lastEdit.valueOf()) return false;
+        }
 
-    // Obtain markdown file data
-    const metadata = matter.read(relativePath);
-    this.paradigm = metadata.data.paradigm;
-    this.dependencies = metadata.data.dependencies;
-    this.script = metadata.content;
-
-    // Get file name relative to directory without extension
-    const filename = `${path.parse(file).dir == "." ? "" : "./"}${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
-    this.name = filename;
-
-    this._lastEdit = fs.statSync(relativePath).mtime;
-
-    this.targetPath =
-      path.join(path.join(process.cwd(), config.targetFolder), this.name) +
-      ".ts";
-    this.findCompiledFile();
-  }
-
-  private traverseDepTree(
-    callback: (node: MarkdownFile) => void,
-    visited?: Map<string, boolean>,
-  ): void {
-    if (visited == null) visited = new Map();
-    if (visited.get(this.name) != null) return;
-    callback(this);
-
-    if (this.dependencies == null) return;
-
-    for (let dep of this.dependencies) {
-      visited.set(dep, true);
-      var newMD = new MarkdownFile(
-        path.join(path.parse(this.name).dir, dep + ".md"),
-      );
-      newMD.traverseDepTree(callback);
+        return this._lastCompile.valueOf() >= this._lastEdit.valueOf();
     }
-  }
 
-  /**
-   * @returns an array of markdown files including itself that need to be compiled
-   *
-   * The array is sorted by whether a file is a dependency. That means that the
-   * first files should have the least files.
-   */
-  get fileList(): MarkdownFile[] {
-    const dependencies: MarkdownFile[] = [];
+    constructor(file: string) {
+        const relativePath = path.join(
+            process.cwd(), config.sourceFolder,
+            file,
+        );
 
-    // recursively traverse the tree
-    this.traverseDepTree((node: MarkdownFile) => {
-      dependencies.push(node);
-    });
+        // Obtain markdown file data
+        const metadata = matter.read(relativePath);
+        this.references = metadata.data.references;
+        this.script = metadata.content;
 
-    dependencies.sort((a: MarkdownFile, b: MarkdownFile): number => {
-      // Return -1 if a is a dependency of b
-      return b.dependencies?.findIndex((n: string) => n === a.name) != -1
-        ? -1
-        : 1;
-    });
+        // Get file name relative to directory without extension
+        const filename = `${path.parse(file).dir == "." ? "" : "./"}${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
+        this.name = filename;
 
-    return dependencies;
-  }
+        this._lastEdit = fs.statSync(relativePath).mtime;
+
+        this.targetPath =
+            path.join(path.join(process.cwd(), config.targetFolder), this.name) +
+            ".ts";
+        this._findCompiledFile();
+    }
+
+    get resolvedReferences(): fileReference[] {
+        if (this.references == undefined)
+            return [];
+        
+        const list: Array<fileReference> = [];
+
+        for (let ref of this.references) {
+            const extension = path.extname(ref);
+
+            const fileType = extension === "" ? "fileDescription" : "architecture";
+            let fileData: string = "";
+            
+            if (fileType == "architecture") {
+                fileData = fs.readFileSync(path.join(process.cwd(), config.sourceFolder, ref), "UTF-8");
+            } else {
+                const mdFile = new MarkdownFile(ref + ".md");
+                fileData = mdFile.isAlreadyCompiled ? mdFile.compiledFile! : mdFile.script;
+            }
+
+            list.push({
+                name: ref,
+                type: fileType,
+                data: fileData 
+            })
+        }
+
+        return list;
+    }
 }

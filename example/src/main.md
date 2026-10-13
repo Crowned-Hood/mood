@@ -1,8 +1,6 @@
 ---
-paradigm: functional
-dependencies: 
-  - ./utils/addThree
-  - ./utils/fib
+references:
+  - ./system.puml
 ---
 this is the main file the program enters from
 

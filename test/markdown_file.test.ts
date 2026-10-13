@@ -5,16 +5,14 @@ describe("Markdown File Analysis", () => {
   test("markdown file without dependencies and in a folder", () => {
     const file = new MarkdownFile("utils/addThree.md");
 
-    expect(file.paradigm).toBe("object oriented");
-    expect(file.dependencies).toBeUndefined();
+    expect(file.references).toBeUndefined();
     expect(file.name).toBe("./utils/addThree");
   });
 
   test("markdown file with dependencies", () => {
     const file = new MarkdownFile("main.md");
 
-    expect(file.paradigm).toBe("functional");
-    expect(file.dependencies![0]).toBe("./utils/addThree");
+    expect(file.references![0]).toBe("./utils/addThree");
     expect(file.name).toBe("./main");
   });
 

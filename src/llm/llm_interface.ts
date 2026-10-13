@@ -20,7 +20,7 @@ export class OllamaInterface implements LLMInterface {
 
   async generate(input: Array<any>): Promise<string> {
     const response = await this._llm.chat({
-      model: "qwen3-coder:480b-cloud",
+      model: "gemma4:31b",
       // model: "qwen2.5-coder:3b",
       messages: input,
     });

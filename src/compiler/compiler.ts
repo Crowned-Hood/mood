@@ -20,13 +20,13 @@ export class Compiler {
     this._llm = new OllamaInterface();
   }
 
-  private generatePrompt(file: MarkdownFile, deps?: LLMDepInfo[]): Array<any> {
+  private generatePrompt(file: MarkdownFile): Array<any> {
     const lang: String = ConfigReader.instance.targetLanguage;
 
     const filePrevious = HistoryCache.instance.getFile(file.name);
     const fileDesc = filePrevious !== undefined ? filePrevious : file.script;
     const depsPrevious = HistoryCache.instance.getFile(file.name + ".deps");
-    const cacheDeps = depsPrevious !== undefined ? JSON.parse(depsPrevious) : deps;
+    const cacheDeps = depsPrevious !== undefined ? JSON.parse(depsPrevious) : file.resolvedReferences;
 
     // First Prompt, Used to create a first iteration
     const prompt1 = {
@@ -66,7 +66,7 @@ ${file.compiledFile!}
     });
 
     const prompt2 = {
-      dependencies: deps,
+      dependencies: file.resolvedReferences,
       fileDescription: file.script,
       task: "Compare the file descriptions and dependencies to make changes to the file"
     }
@@ -82,7 +82,7 @@ ${file.compiledFile!}
   /**
    * Takes a file and compiles it into the language configured
    */
-  async compileFile(file: MarkdownFile, deps?: LLMDepInfo[]): Promise<string> {
+  async compileFile(file: MarkdownFile): Promise<string> {
 
     if (file.isAlreadyCompiled && ConfigReader.instance.forceCompile !== true) {
       console.log(file.name, "is already compiled; Skipping to save tokens :)");
@@ -93,15 +93,15 @@ ${file.compiledFile!}
     console.log("Compiling file", file.name);
 
     // Compiling Process
-    const prompt = this.generatePrompt(file, deps);
+    const prompt = this.generatePrompt(file);
     console.log(prompt);
     const response = await this._llm.generate(prompt);
     console.log(response);
 
     // Assume successful, cache the iteration
     HistoryCache.instance.setFile(file.name, file.script);
-    if (deps !== undefined)
-      HistoryCache.instance.setFile(file.name + ".deps", JSON.stringify(deps));
+    if (file.resolvedReferences !== undefined)
+      HistoryCache.instance.setFile(file.name + ".deps", JSON.stringify(file.resolvedReferences));
 
     return response.split("\n").slice(1, -1).join("\n");
   }
@@ -111,32 +111,9 @@ ${file.compiledFile!}
     const compileList = rootFile.fileList;
     // console.log(compileList);
 
-    for (let file of compileList) {
-      // fetch dependencies as DepInfo;
-
-      const requiredDeps: LLMDepInfo[] = [];
-
-      if (file.dependencies !== undefined) {
-        for (let dep of file.dependencies) {
-          const depMD = compileList.find((n) => n.name === dep);
-          requiredDeps.push({
-            name: dep,
-            text: depMD?.compiledFile || depMD?.script,
-          });
-        }
-      }
-
-      const output = await this.compileFile(
-        file,
-        requiredDeps.length != 0 ? requiredDeps : undefined,
-      );
-
-      file.compiledFile = output;
-
-      fs.mkdirSync(path.parse(file.targetPath).dir, { recursive: true });
-      fs.writeFileSync(file.targetPath, output);
-
-      // console.log(output);
-    }
+    const output = await this.compileFile(rootFile);
+    rootFile.compiledFile = output;
+    fs.mkdirSync(path.parse(rootFile.targetPath).dir, { recursive: true });
+    fs.writeFileSync(rootFile.targetPath, output);
   }
 }

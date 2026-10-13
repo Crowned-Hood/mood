@@ -1,5 +1,5 @@
 ---
-paradigm: object oriented
+
 ---
 
 This file contains a public class with a static function.

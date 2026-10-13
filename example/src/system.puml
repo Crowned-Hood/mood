@@ -1,0 +1,13 @@
+@startuml
+class Main <<./main>> {
+  + {static} main()
+}
+
+class Fib <<./utils/fib>> {
+  + {static} computeFib(index)
+}
+
+class addThree <<./utils/addThree>> {
+  + {static} add(number)
+}
+@enduml
