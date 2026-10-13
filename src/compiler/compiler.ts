@@ -116,4 +116,20 @@ ${file.compiledFile!}
     fs.mkdirSync(path.parse(rootFile.targetPath).dir, { recursive: true });
     fs.writeFileSync(rootFile.targetPath, output);
   }
+  
+  async buildTree(root:string = ConfigReader.instance.sourceFolder, dir:string = ""): Promise<void> {
+    const folder = path.join(root, dir);
+    if (!fs.existsSync(folder)) {
+      throw new Error(`Source folder not found: ${folder}`);
+    }
+
+    for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        this.buildTree(root, entry.name);
+      }
+
+      if (path.extname(entry.name) == ".md")
+        this.buildProcess(path.join(dir, entry.name));
+    }
+  }
 }

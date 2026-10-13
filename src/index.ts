@@ -12,20 +12,28 @@ program
     "An extremely experimental cli program that that uses an LLM to compile markdown to a target language of choice",
   );
 
-program
+program.command("build")
   .option("-f, --force", "forces the cli action without any restraint")
-  .option(
-    "-m, --main <string>",
-    "the main file path from the source directory",
-  );
+  .argument(
+    "[files...]",
+    "the list of files to compile",
+  )
+  .action((files: string[], options) => {
+    // Override configs where needed
+    const config = ConfigReader.instance;
+    if (options.force !== undefined) config.forceCompile = true;
+
+    // Run Compilation Process
+    const compiler: Compiler = new Compiler();
+
+    if (files.length > 0) {
+      for (const i of files)
+        compiler.buildProcess(i);
+
+      return;
+    }
+
+    compiler.buildTree();
+  })
 
 program.parse(process.argv);
-const options = program.opts();
-
-// Override configs where needed
-const config = ConfigReader.instance;
-if (options.force !== undefined) config.forceCompile = true;
-
-// Run Compilation Process
-const compiler: Compiler = new Compiler();
-compiler.buildProcess(config.mainFile);

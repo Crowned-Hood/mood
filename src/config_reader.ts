@@ -10,10 +10,10 @@ export class ConfigReader {
   mainFile: string;
   forceCompile: boolean;
 
-  constructor(config: any) {
+  private constructor(config: any) {
     this.targetLanguage = config.targetLanguage || "JavaScript";
-    this.targetFolder = config.targetFolder || "out";
-    this.sourceFolder = config.sourceFolder || "src";
+    this.targetFolder = config.targetFolder || "sandbox";
+    this.sourceFolder = config.sourceFolder || "architecture";
     this.mainFile = config.mainFile || "./main.md";
     this.forceCompile = false;
   }
@@ -22,7 +22,7 @@ export class ConfigReader {
     if (ConfigReader._instance != null) return ConfigReader._instance;
 
     var configFileText: string = fs.readFileSync(
-      path.join(process.cwd(), "llmscript.json"),
+      path.join(process.cwd(), "moodconf.json"),
       "utf8",
     );
     var config: any = JSON.parse(configFileText);
