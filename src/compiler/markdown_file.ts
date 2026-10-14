@@ -17,6 +17,7 @@ export class MarkdownFile {
     extension?: string;
     script: string;
     name: string;
+    folder: string;
     targetPath: string;
     private _lastEdit: Date;
 
@@ -63,6 +64,8 @@ export class MarkdownFile {
         const filename = `${path.parse(file).dir == "." ? "" : "./"}${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
         this.name = filename;
 
+        this.folder = path.dirname(relativePath);
+
         this._lastEdit = fs.statSync(relativePath).mtime;
 
         this.targetPath =
@@ -84,7 +87,7 @@ export class MarkdownFile {
             let fileData: string = "";
             
             if (fileType == "architecture") {
-                fileData = fs.readFileSync(path.join(process.cwd(), config.sourceFolder, ref), "UTF-8");
+                fileData = fs.readFileSync(path.resolve(process.cwd(), this.folder, ref), "UTF-8");
             } else {
                 const mdFile = new MarkdownFile(ref + ".md");
                 fileData = mdFile.isAlreadyCompiled ? mdFile.compiledFile! : mdFile.script;

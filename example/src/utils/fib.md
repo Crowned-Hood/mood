@@ -1,6 +1,6 @@
 ---
 references:
-- ./system.puml
+- ../system.puml
 ---
 
 This file contains a public class with a static function.

@@ -146,7 +146,7 @@ ${file.compiledFile!}
       }
 
       if (path.extname(entry.name) == ".md")
-        this.buildProcess(path.join(dir, entry.name));
+        await this.buildProcess(path.join(dir, entry.name));
     }
   }
 }

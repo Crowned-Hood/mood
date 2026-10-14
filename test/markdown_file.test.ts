@@ -5,7 +5,7 @@ describe("Markdown File Analysis", () => {
   test("markdown file without dependencies and in a folder", () => {
     const file = new MarkdownFile("utils/addThree.md");
 
-    expect(file.references).toBeUndefined();
+    expect(file.references).toBe("../system.puml");
     expect(file.name).toBe("./utils/addThree");
   });
 
