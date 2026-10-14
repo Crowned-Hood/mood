@@ -13,6 +13,11 @@ interface LLMDepInfo {
   text?: string;
 }
 
+let agentFile = ""
+
+if (fs.existsSync(path.join(process.cwd(), "AGENT.md")))
+  agentFile = fs.readFileSync(path.join(process.cwd(), "AGENT.md"), "UTF-8");
+
 export class Compiler {
   _llm: LLMInterface;
 
@@ -28,15 +33,21 @@ export class Compiler {
     const depsPrevious = HistoryCache.instance.getFile(file.name + ".deps");
     const cacheDeps = depsPrevious !== undefined ? JSON.parse(depsPrevious) : file.resolvedReferences;
 
+    // System Prompt
+    const systemPrompt = {
+      role: `compiler that takes Markdown and compiles it to ${lang}`,
+      constraints: [
+        `Do not generate any dialogue response at all. Generate vaild ${lang} code that can be run`,
+        "Do only what the file description says. Do not import dependencies unless mentioned",
+        "Must follow behavior of specified dependencies",
+        "Assume you are working in an agile environment so you need to make this file accessible to others",
+        "If the previous iteration is not null, then consider using the file structure of that file.",
+      ],
+      agentmd: agentFile
+    }
+
     // First Prompt, Used to create a first iteration
     const prompt1 = {
-          constraints: [
-            `Do not generate any dialogue response at all. Generate vaild ${lang} code that can be run`,
-            "Do only what the file description says. Do not import dependencies unless mentioned",
-            "Must follow behavior of specified dependencies",
-            "Assume you are working in an agile environment so you need to make this file accessible to others",
-            "If the previous iteration is not null, then consider using the file structure of that file.",
-          ],
           filename: file.name,
           paradigm: file.paradigm,
           dependencies: cacheDeps,
@@ -49,10 +60,16 @@ export class Compiler {
     \`\`\``,
         };
 
-    const promptFull = [{
-      role: "user",
-      content: encode(prompt1)
-    }];
+    const promptFull = [
+      {
+        role: "system",
+        content: encode(systemPrompt)
+      },
+      {
+        role: "user",
+        content: encode(prompt1)
+      }
+    ];
 
     // Second Prompt, Used to iterate file
     if (filePrevious === undefined)
