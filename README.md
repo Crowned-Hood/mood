@@ -33,21 +33,32 @@ files all the way to the main file itself.
 ---
 references: 
   - ./system.puml
+  - ./diagram.excalidraw
 ---
 
 this is the main file the program enters from
 
 print a line that says Hello World
 call the method addThree from the class addThree with n = 5
-print the 5th fibonacci sequence
+print the 5th fibonacci sequence.
+
+Once it is done printing those commands, it should draw out a box interface in the terminal. Use the excalidraw diagram for reference. 
 ```
 
-> Why `.puml`?
+Figure 1. see [main.md](./example/src/main.md)
+
+> Why `.puml` and `.excalidraw`?
 >
 > PlantUML is an architecture based modeling "language" to describe the
 > architecture used in software design. You can feed any documentation
 > file (including other markdown files), but PlantUML is great for giving
 > code more context than needed with less tokens.
+>
+> This will also work well with .excalidraw files or any other format that is
+> text based.
+>
+> The references you give will be up to you, but as long as you have a plan
+> on how to communicate your software architecture, you can implement anything.
 
 ## Q&A
 

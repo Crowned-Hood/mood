@@ -5,6 +5,7 @@ export class ConfigReader {
   private static _instance: ConfigReader | null = null;
 
   targetLanguage: string;
+  fileExtension: string;
   targetFolder: string;
   sourceFolder: string;
   mainFile: string;
@@ -12,6 +13,7 @@ export class ConfigReader {
 
   private constructor(config: any) {
     this.targetLanguage = config.targetLanguage || "JavaScript";
+    this.fileExtension = config.fileExtension || ".js";
     this.targetFolder = config.targetFolder || "sandbox";
     this.sourceFolder = config.sourceFolder || "architecture";
     this.mainFile = config.mainFile || "./main.md";

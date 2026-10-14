@@ -70,7 +70,7 @@ export class MarkdownFile {
 
         this.targetPath =
             path.join(path.join(process.cwd(), config.targetFolder), this.name) +
-            ".ts";
+            config.fileExtension;
         this._findCompiledFile();
     }
 
