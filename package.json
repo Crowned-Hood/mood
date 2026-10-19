@@ -1,8 +1,11 @@
 {
-  "name": "llm-script",
+  "name": "mood",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
+  "bin": {
+    "moodc": "./src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

@@ -11,7 +11,7 @@ export class ConfigReader {
   mainFile: string;
   forceCompile: boolean;
 
-  private constructor(config: any) {
+  private constructor(config?: any) {
     this.targetLanguage = config.targetLanguage || "JavaScript";
     this.fileExtension = config.fileExtension || ".js";
     this.targetFolder = config.targetFolder || "sandbox";
@@ -23,11 +23,16 @@ export class ConfigReader {
   static get instance(): any {
     if (ConfigReader._instance != null) return ConfigReader._instance;
 
-    var configFileText: string = fs.readFileSync(
-      path.join(process.cwd(), "moodconf.json"),
-      "utf8",
-    );
-    var config: any = JSON.parse(configFileText);
+    let configFileText: string;
+    let config: any = {};
+
+    if (fs.existsSync("./moodconf.json")) {
+      configFileText = fs.readFileSync(
+        path.join(process.cwd(), "moodconf.json"),
+        "utf8",
+      );
+      config = JSON.parse(configFileText);
+    }
 
     ConfigReader._instance = new ConfigReader(config);
 

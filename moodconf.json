@@ -1,5 +1,5 @@
 {
-  "targetLanguage": "TypeScript",
+  "targetLanguage": "JavaScript",
   "targetFolder": "example/out",
   "sourceFolder": "example/src/"
 }

@@ -26,7 +26,7 @@ export class Compiler {
   }
 
   private generatePrompt(file: MarkdownFile): Array<any> {
-    const lang: String = ConfigReader.instance.targetLanguage;
+    const lang: String = file.targetLang ?? ConfigReader.instance.targetLanguage;
 
     const filePrevious = HistoryCache.instance.getFile(file.name);
     const fileDesc = filePrevious !== undefined ? filePrevious : file.script;
@@ -39,11 +39,12 @@ export class Compiler {
       constraints: [
         `Do not generate any dialogue response at all. Generate vaild ${lang} code that can be run`,
         "Do only what the file description says. Do not import dependencies unless mentioned",
+        "Implement only what the file or project describes.",
         "Must follow behavior of specified dependencies",
         "Assume you are working in an agile environment so you need to make this file accessible to others",
         "If the previous iteration is not null, then consider using the file structure of that file.",
       ],
-      agentmd: agentFile
+      projectOverview: agentFile
     }
 
     // First Prompt, Used to create a first iteration
@@ -63,11 +64,11 @@ export class Compiler {
     const promptFull = [
       {
         role: "system",
-        content: encode(systemPrompt)
+        content: encode(systemPrompt, {indent: 2})
       },
       {
         role: "user",
-        content: encode(prompt1)
+        content: encode(prompt1, {indent: 2})
       }
     ];
 
@@ -90,7 +91,7 @@ ${file.compiledFile!}
 
     promptFull.push({
       role: "user",
-      content: encode(prompt2)
+      content: encode(prompt2, {indent: 2})
     })
 
     return promptFull;
@@ -111,14 +112,14 @@ ${file.compiledFile!}
 
     // Compiling Process
     const prompt = this.generatePrompt(file);
-    console.log(prompt);
     const response = await this._llm.generate(prompt);
-    console.log(response);
 
     // Assume successful, cache the iteration
     HistoryCache.instance.setFile(file.name, file.script);
     if (file.resolvedReferences !== undefined)
       HistoryCache.instance.setFile(file.name + ".deps", JSON.stringify(file.resolvedReferences));
+
+    console.log(file.name, "Compiled Successfuly");
 
     return response.split("\n").slice(1, -1).join("\n");
   }
@@ -142,7 +143,7 @@ ${file.compiledFile!}
 
     for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        this.buildTree(root, entry.name);
+        this.buildTree(root, path.join(dir, entry.name));
       }
 
       if (path.extname(entry.name) == ".md")

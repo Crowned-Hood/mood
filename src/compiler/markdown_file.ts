@@ -18,9 +18,11 @@ export class MarkdownFile {
     script: string;
     name: string;
     folder: string;
-    targetPath: string;
     private _lastEdit: Date;
 
+
+    targetPath: string;
+    targetLang: string;
     compiledFile?: string;
     private _lastCompile?: Date;
 
@@ -64,13 +66,15 @@ export class MarkdownFile {
         const filename = `${path.parse(file).dir == "." ? "" : "./"}${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
         this.name = filename;
 
-        this.folder = path.dirname(relativePath);
+        this.folder = path.dirname(file);
 
         this._lastEdit = fs.statSync(relativePath).mtime;
 
+        this.targetLang = metadata.data.targetLang;
+        this.extension = metadata.data.extension ?? config.fileExtension;
         this.targetPath =
             path.join(path.join(process.cwd(), config.targetFolder), this.name) +
-            config.fileExtension;
+            this.extension;
         this._findCompiledFile();
     }
 
@@ -87,9 +91,9 @@ export class MarkdownFile {
             let fileData: string = "";
             
             if (fileType == "architecture") {
-                fileData = fs.readFileSync(path.resolve(process.cwd(), this.folder, ref), "UTF-8");
+                fileData = fs.readFileSync(path.resolve(process.cwd(), ConfigReader.instance.sourceFolder, this.folder, ref), "UTF-8");
             } else {
-                const mdFile = new MarkdownFile(ref + ".md");
+                const mdFile = new MarkdownFile(path.resolve(this.folder, ref + ".md"));
                 fileData = mdFile.isAlreadyCompiled ? mdFile.compiledFile! : mdFile.script;
             }
 
