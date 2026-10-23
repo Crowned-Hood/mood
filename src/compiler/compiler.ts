@@ -50,7 +50,6 @@ export class Compiler {
     // First Prompt, Used to create a first iteration
     const prompt1 = {
           filename: file.name,
-          paradigm: file.paradigm,
           dependencies: cacheDeps,
           fileDescription: fileDesc,
           task: `write a ${lang} file for a large scale project based on the file description I have given you.`,
@@ -126,8 +125,6 @@ ${file.compiledFile!}
 
   async buildProcess(main: string): Promise<void> {
     const rootFile = new MarkdownFile(main);
-    const compileList = rootFile.fileList;
-    // console.log(compileList);
 
     const output = await this.compileFile(rootFile);
     rootFile.compiledFile = output;
@@ -143,7 +140,7 @@ ${file.compiledFile!}
 
     for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        this.buildTree(root, path.join(dir, entry.name));
+        await this.buildTree(root, path.join(dir, entry.name));
       }
 
       if (path.extname(entry.name) == ".md")
