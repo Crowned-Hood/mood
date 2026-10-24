@@ -51,24 +51,29 @@ export class MarkdownFile {
         return this._lastCompile.valueOf() >= this._lastEdit.valueOf();
     }
 
-    constructor(file: string) {
-        const relativePath = path.join(
-            process.cwd(), config.sourceFolder,
-            file,
-        );
+    constructor(file: string, absolute: boolean = false) {
+        const sourceDir = path.join(process.cwd(), config.sourceFolder);
+        const isAbs = absolute || path.isAbsolute(file);
+
+        // Determine the absolute path for reading the file
+        const absolutePath = isAbs ? file : path.join(sourceDir, file);
+        
+        // Determine the path relative to the source folder for naming and target mapping
+        const relativeToSource = isAbs ? path.relative(sourceDir, file) : file;
 
         // Obtain markdown file data
-        const metadata = matter.read(relativePath);
+        const metadata = matter.read(absolutePath);
         this.references = metadata.data.references;
         this.script = metadata.content;
 
         // Get file name relative to directory without extension
-        const filename = `${path.parse(file).dir == "." ? "" : "./"}${path.parse(file).dir}${path.parse(file).dir !== "" ? "/" : ""}${path.parse(file).name}`;
+        const parsed = path.parse(relativeToSource);
+        const filename = `${parsed.dir == "." ? "" : "./"}${parsed.dir}${parsed.dir !== "" ? "/" : ""}${parsed.name}`;
         this.name = filename;
 
-        this.folder = path.dirname(file);
+        this.folder = path.dirname(relativeToSource);
 
-        this._lastEdit = fs.statSync(relativePath).mtime;
+        this._lastEdit = fs.statSync(absolutePath).mtime;
 
         this.targetLang = metadata.data.targetLang;
         this.extension = metadata.data.extension ?? config.fileExtension;
@@ -93,7 +98,7 @@ export class MarkdownFile {
             if (fileType == "architecture") {
                 fileData = fs.readFileSync(path.resolve(process.cwd(), ConfigReader.instance.sourceFolder, this.folder, ref), "UTF-8");
             } else {
-                const mdFile = new MarkdownFile(path.resolve(this.folder, ref + ".md"));
+                const mdFile = new MarkdownFile(path.resolve(ConfigReader.instance.sourceFolder, this.folder, ref + ".md"), true);
                 fileData = mdFile.isAlreadyCompiled ? mdFile.compiledFile! : mdFile.script;
             }
 
